@@ -13,3 +13,17 @@
 (define-constant ERR-SELF-PURCHASE (err u106))
 
 (define-constant BPS-DENOMINATOR u10000)
+
+;; data vars
+(define-data-var last-token-id uint u0)
+
+;; data maps
+(define-map token-metadata uint
+  {
+    uri: (optional (string-ascii 200)),
+    creator: principal,
+    royalty-bps: uint
+  }
+)
+
+(define-map listings uint { price: uint, seller: principal })
