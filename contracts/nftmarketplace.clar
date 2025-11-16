@@ -29,6 +29,12 @@
 (define-map listings uint { price: uint, seller: principal })
 
 ;; public functions
+
+;; Mint a new NFT with metadata and royalty settings
+;; @param recipient: principal address to receive the NFT
+;; @param metadata-uri: optional URI pointing to token metadata
+;; @param royalty-bps: royalty percentage in basis points (0-10000, where 10000 = 100%)
+;; @returns: (ok token-id) on success
 (define-public (mint (recipient principal) (metadata-uri (optional (string-ascii 200))) (royalty-bps uint))
   (begin
     (asserts! (<= royalty-bps BPS-DENOMINATOR) ERR-INVALID-ROYALTY)
@@ -46,3 +52,24 @@
     )
   )
 )
+
+;; List an NFT for sale on the marketplace
+;; @param token-id: the ID of the NFT to list
+;; @param price: listing price in microSTX (must be greater than 0)
+;; @returns: (ok token-id) on success
+;; Only the current owner can list their NFT
+(define-public (list-token (token-id uint) (price uint))
+  (let ((owner (unwrap! (nft-get-owner? nft009market token-id) ERR-TOKEN-NOT-FOUND)))
+    (begin
+      (asserts! (> price u0) ERR-INVALID-PRICE)
+      (asserts! (is-eq owner tx-sender) ERR-NOT-OWNER)
+      (map-set listings token-id {
+        price: price,
+        seller: tx-sender
+      })
+      (ok token-id)
+    )
+  )
+)
+
+
