@@ -90,3 +90,17 @@
     )
   )
 )
+
+;; Cancel an existing listing and remove it from the marketplace
+;; @param token-id: the ID of the listed NFT to cancel
+;; @returns: (ok token-id) on success
+;; Only the current seller can cancel their listing
+(define-public (cancel-listing (token-id uint))
+  (let ((listing (unwrap! (map-get? listings token-id) ERR-NOT-LISTED)))
+    (begin
+      (asserts! (is-eq (get seller listing) tx-sender) ERR-NOT-OWNER)
+      (map-delete listings token-id)
+      (ok token-id)
+    )
+  )
+)
