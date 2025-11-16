@@ -72,4 +72,21 @@
   )
 )
 
-
+;; Update the price of an existing listing
+;; @param token-id: the ID of the listed NFT
+;; @param new-price: new listing price in microSTX (must be greater than 0)
+;; @returns: (ok token-id) on success
+;; Only the current seller can update their listing
+(define-public (update-listing (token-id uint) (new-price uint))
+  (let ((listing (unwrap! (map-get? listings token-id) ERR-NOT-LISTED)))
+    (begin
+      (asserts! (is-eq (get seller listing) tx-sender) ERR-NOT-OWNER)
+      (asserts! (> new-price u0) ERR-INVALID-PRICE)
+      (map-set listings token-id {
+        price: new-price,
+        seller: tx-sender
+      })
+      (ok token-id)
+    )
+  )
+)
