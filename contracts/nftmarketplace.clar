@@ -104,3 +104,48 @@
     )
   )
 )
+
+;; Purchase a listed NFT from the marketplace
+;; @param token-id: the ID of the NFT to purchase
+;; @returns: (ok token-id) on success
+;; Automatically distributes payment between seller and creator (if royalty applies)
+;; Transfers NFT ownership to the buyer and removes the listing
+(define-public (purchase (token-id uint))
+  (let (
+        (listing (unwrap! (map-get? listings token-id) ERR-NOT-LISTED))
+        (metadata (unwrap! (map-get? token-metadata token-id) ERR-TOKEN-NOT-FOUND))
+        (owner (unwrap! (nft-get-owner? nft009market token-id) ERR-TOKEN-NOT-FOUND))
+      )
+    (let (
+          (seller (get seller listing))
+          (price (get price listing))
+          (creator (get creator metadata))
+          (royalty-bps (get royalty-bps metadata))
+        )
+      (begin
+        (asserts! (> price u0) ERR-INVALID-PRICE)
+        (asserts! (is-eq owner seller) ERR-NOT-OWNER)
+        (asserts! (not (is-eq seller tx-sender)) ERR-SELF-PURCHASE)
+        (let (
+              (raw-royalty (/ (* price royalty-bps) BPS-DENOMINATOR))
+              (royalty (if (is-eq creator seller) u0 raw-royalty))
+              (seller-amount (- price royalty))
+            )
+          (begin
+            (try!
+              (if (> royalty u0)
+                  (stx-transfer? royalty tx-sender creator)
+                  (ok true)))
+            (try!
+              (if (> seller-amount u0)
+                  (stx-transfer? seller-amount tx-sender seller)
+                  (ok true)))
+            (try! (nft-transfer? nft009market token-id seller tx-sender))
+            (map-delete listings token-id)
+            (ok token-id)
+          )
+        )
+      )
+    )
+  )
+)
