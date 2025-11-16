@@ -7,8 +7,8 @@ cache_dir = './.cache'
 requirements = []
 [contracts.nftmarketplace]
 path = 'contracts/nftmarketplace.clar'
-clarity_version = 4
-epoch = 'latest'
+clarity_version = 2
+epoch = '3.0'
 [repl.analysis]
 passes = ['check_checker']
 
