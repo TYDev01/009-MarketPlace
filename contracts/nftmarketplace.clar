@@ -27,3 +27,22 @@
 )
 
 (define-map listings uint { price: uint, seller: principal })
+
+;; public functions
+(define-public (mint (recipient principal) (metadata-uri (optional (string-ascii 200))) (royalty-bps uint))
+  (begin
+    (asserts! (<= royalty-bps BPS-DENOMINATOR) ERR-INVALID-ROYALTY)
+    (let ((next-id (+ (var-get last-token-id) u1)))
+      (begin
+        (var-set last-token-id next-id)
+        (unwrap! (nft-mint? nft009market next-id recipient) ERR-MINT-FAILED)
+        (map-set token-metadata next-id {
+          uri: metadata-uri,
+          creator: tx-sender,
+          royalty-bps: royalty-bps
+        })
+        (ok next-id)
+      )
+    )
+  )
+)
