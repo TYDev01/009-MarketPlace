@@ -149,3 +149,32 @@
     )
   )
 )
+
+;; read only functions
+
+;; Get the ID of the last minted token
+;; @returns: uint - the last token ID
+(define-read-only (get-last-token-id)
+  (var-get last-token-id)
+)
+
+;; Get metadata for a specific token
+;; @param token-id: the ID of the token to query
+;; @returns: (optional {uri, creator, royalty-bps}) - token metadata or none if not found
+(define-read-only (get-token-metadata (token-id uint))
+  (map-get? token-metadata token-id)
+)
+
+;; Get listing information for a specific token
+;; @param token-id: the ID of the token to query
+;; @returns: (optional {price, seller}) - listing info or none if not listed
+(define-read-only (get-listing (token-id uint))
+  (map-get? listings token-id)
+)
+
+;; Get the owner of a specific token
+;; @param token-id: the ID of the token to query
+;; @returns: (optional principal) - owner address or none if token doesn't exist
+(define-read-only (get-owner (token-id uint))
+  (nft-get-owner? nft009market token-id)
+)
